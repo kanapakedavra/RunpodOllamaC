@@ -5,8 +5,10 @@ FROM ollama/ollama:0.2.8 AS model-puller
 
 # Put the cache in a path that’s easy to copy out
 ENV OLLAMA_MODELS=/models
-RUN mkdir -p ${OLLAMA_MODELS} && \
-    ollama pull mistral:7b           # ← pull the exact tag you need
+RUN ollama serve & \
+    sleep 6 && \
+    ollama pull mistral:7b && \
+    pkill -SIGTERM ollama
 
 #######################################################################
 # Stage 2 — final runtime image                                       #
