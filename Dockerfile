@@ -17,8 +17,7 @@ FROM ollama/ollama:cuda-0.2.12 AS runtime
 # copy model cache
 COPY --from=model-puller /models /root/.ollama/models
 ENV  OLLAMA_MODELS=/root/.ollama/models
-ENV  OLLAMA_FLASH_ATTENTION=1        # GPU kernels
-# ENV OLLAMA_NUM_THREAD=$(nproc)     # uncomment for CPU workers
+ENV  OLLAMA_FLASH_ATTENTION=1
 
 # ----- (your Python deps + handler) ---------------------------------
 RUN apt-get update -qq && \
@@ -30,5 +29,5 @@ RUN pip install --upgrade pip runpod
 WORKDIR /
 COPY . .
 
-ENTRYPOINT ["bash", "start.sh"]      # starts both Ollama & handler
+ENTRYPOINT ["bash", "start.sh"]
 EXPOSE 11434
