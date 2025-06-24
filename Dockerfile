@@ -4,12 +4,11 @@
 FROM ollama/ollama:0.9.2 AS model-puller
 
 ENV OLLAMA_MODELS=/models
-RUN mkdir -p $OLLAMA_MODELS && \
-    # keep the daemon alive long enough for the pull
-    ollama serve & sleep 6 && \
-    ollama pull mistral:7b-q4_K_M && \
+#RUN mkdir -p $OLLAMA_MODELS && \
+RUN ollama serve & \
+    sleep 6 && \
+    ollama pull mistral:7b && \
     pkill -SIGTERM ollama
-
 #######################################################################
 # Stage 2 – runtime image (GPU-ready, Flash-Attn on)                  #
 #######################################################################
