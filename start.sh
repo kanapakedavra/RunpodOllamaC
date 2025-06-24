@@ -1,34 +1,20 @@
-#!/bin/bash
+#!/usr/bin/env bash
+set -euo pipefail
 
-cleanup() {
-    echo "Cleaning up..."
-    pkill -P $$ # Kill all child processes of the current script
-    exit 0
-}
+# 1. start daemon
+ollama serve 2>&1 | tee /var/log/ollama.log &
+OLLAMA_PID=$!
 
-# Trap exit signals and call the cleanup function
-trap cleanup SIGINT SIGTERM
-
-# Kill any existing ollama processes
-pgrep ollama | xargs kill
-
-# Start the ollama server and log its output
-ollama serve 2>&1 | tee ollama.server.log &
-OLLAMA_PID=$! # Store the process ID (PID) of the background command
-
-check_server_is_running() {
-    echo "Checking if server is running..."
-    if cat ollama.server.log | grep -q "Listening"; then
-        return 0 # Success
-    else
-        return 1 # Failure
-    fi
-}
-
-# Wait for the server to start
-while ! check_server_is_running; do
-    sleep 5
+# 2. wait until it listens (max 30 s)
+for _ in {1..30}; do
+  grep -q "Listening" /var/log/ollama.log && break
+  sleep 1
 done
 
-ollama pull $1
-python3 -u runpod_wrapper.py $1
+# 3. *don't* pull again if the model is already baked in
+if ! ollama list | grep -q "^$1 "; then
+  ollama pull "$1"
+fi
+
+# 4. launch your wrapper
+exec python3 -u runpod_wrapper.py "$1"

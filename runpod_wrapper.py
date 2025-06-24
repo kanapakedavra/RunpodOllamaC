@@ -1,6 +1,7 @@
 import runpod
 from typing import Any, TypedDict
 import requests
+import time
 import sys
 
 
@@ -19,6 +20,7 @@ class HandlerJob(TypedDict):
 
 
 def handler(job: HandlerJob):
+    
     base_url = "http://0.0.0.0:11434"
     input = job["input"]
 
