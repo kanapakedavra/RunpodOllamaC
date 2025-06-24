@@ -1,25 +1,26 @@
 #######################################################################
-# Stage 1 – pull the quantised model once at build-time               #
+# Stage 1 – pull the model once at build-time                         #
 #######################################################################
-FROM ollama/ollama:cuda-0.2.12 AS model-puller
+FROM ollama/ollama:0.9.2 AS model-puller          # <— valid tag
 
 ENV OLLAMA_MODELS=/models
 RUN mkdir -p $OLLAMA_MODELS && \
+    # keep the daemon alive long enough for the pull
     ollama serve & sleep 6 && \
     ollama pull mistral:7b-q4_K_M && \
     pkill -SIGTERM ollama
 
 #######################################################################
-# Stage 2 – runtime image, Flash-Attn & GPU ready                     #
+# Stage 2 – runtime image (GPU-ready, Flash-Attn on)                  #
 #######################################################################
-FROM ollama/ollama:cuda-0.2.12 AS runtime
+FROM ollama/ollama:0.9.2 AS runtime
 
-# copy model cache
+# copy pre-pulled cache
 COPY --from=model-puller /models /root/.ollama/models
 ENV  OLLAMA_MODELS=/root/.ollama/models
-ENV  OLLAMA_FLASH_ATTENTION=1
+ENV  OLLAMA_FLASH_ATTENTION=1            # speed-up on A10/L4/A100…
 
-# ----- (your Python deps + handler) ---------------------------------
+# ------- your Python deps / handler --------
 RUN apt-get update -qq && \
     DEBIAN_FRONTEND=noninteractive apt-get install -y -qq \
         python3 python3-pip python-is-python3 && \
@@ -29,5 +30,5 @@ RUN pip install --upgrade pip runpod
 WORKDIR /
 COPY . .
 
-ENTRYPOINT ["bash", "start.sh"]
+ENTRYPOINT ["bash", "start.sh"]          # starts ollama + your handler
 EXPOSE 11434
