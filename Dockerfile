@@ -1,7 +1,7 @@
 #######################################################################
 # Stage 1 – pull the model once at build-time                         #
 #######################################################################
-FROM ollama/ollama:0.9.2 AS model-puller          # <— valid tag
+FROM ollama/ollama:0.9.2 AS model-puller
 
 ENV OLLAMA_MODELS=/models
 RUN mkdir -p $OLLAMA_MODELS && \
@@ -18,7 +18,7 @@ FROM ollama/ollama:0.9.2 AS runtime
 # copy pre-pulled cache
 COPY --from=model-puller /models /root/.ollama/models
 ENV  OLLAMA_MODELS=/root/.ollama/models
-ENV  OLLAMA_FLASH_ATTENTION=1            # speed-up on A10/L4/A100…
+ENV  OLLAMA_FLASH_ATTENTION=1
 
 # ------- your Python deps / handler --------
 RUN apt-get update -qq && \
@@ -30,5 +30,5 @@ RUN pip install --upgrade pip runpod
 WORKDIR /
 COPY . .
 
-ENTRYPOINT ["bash", "start.sh"]          # starts ollama + your handler
+ENTRYPOINT ["bash", "start.sh"]
 EXPOSE 11434
