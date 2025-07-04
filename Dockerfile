@@ -7,7 +7,7 @@ ENV OLLAMA_MODELS=/models
 #RUN mkdir -p $OLLAMA_MODELS && \
 RUN ollama serve & \
     sleep 6 && \
-    ollama pull mistral:7b && \
+    ollama pull leeplenty/lumimaid-v0.2:8b && \
     pkill -SIGTERM ollama
 #######################################################################
 # Stage 2 – runtime image (GPU-ready, Flash-Attn on)                  #
